@@ -69,13 +69,13 @@ exec(char *path, char **argv)
   //sp = sz;
   
   // Modified code for lab 3
-	sz = PGROUNDUP(sz);	
-	uint szStack = KERNBASE - PGSIZE;
-	if((szStack = allocuvm(pgdir, szStack, szStack + 8)) == 0)
-	{
-		goto bad;
+	sz = PGROUNDUP(sz);	// Round sz up to next page boundary (stack needs to starts at new page)
+	uint szStack = KERNBASE - PGSIZE; // sz stack starts one page above the kernel VA
+	if((szStack = allocuvm(pgdir, szStack, szStack + 8)) == 0) // creat the stack with one page
+	{														   // and last addr of the stack
+		goto bad;	// allo fault							   // 8 addrs after the beginning addr
 	}
-	sp = USERSTACKBASE;
+	sp = USERSTACKBASE; // stack ptr pointing to first addr of stack
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
