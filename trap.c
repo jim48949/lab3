@@ -77,7 +77,24 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
-
+  case T_PGFLT:					// Page Fault case
+    ;
+    uint faultAddr = rcr2();	//Get the fault address
+    uint numPG = myproc()->stackSize + 1;
+    
+    if(faultAddr >= USERSTACKBASE - ((PGSIZE * numPG) + 1))
+    {
+		if(allocuvm(myproc()->pgdir, PGROUNDDOWN(faultAddr), PGROUNDDOWN(faultAddr) + 8) == 0)
+		{
+			cprintf("\n Error orrcured in allocuvm() ! \n");
+			break;
+		}
+		
+		myproc()->stackSize += 1;
+		cprintf("\n Stack size is successfully increased by 1 \n");
+		break;
+	}
+	
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
