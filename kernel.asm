@@ -1264,7 +1264,7 @@ exec(char *path, char **argv)
 80100b3c:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
   end_op();
 80100b40:	e8 2b 20 00 00       	call   80102b70 <end_op>
-	if((szStack = allocuvm(pgdir, szStack, szStack + 8)) == 0)
+	if((szStack = allocuvm(pgdir, szStack, szStack + 8)) == 0) // creat the stack with one page
 80100b45:	8b 85 f0 fe ff ff    	mov    -0x110(%ebp),%eax
 80100b4b:	c7 44 24 08 08 f0 ff 	movl   $0x7ffff008,0x8(%esp)
 80100b52:	7f 
@@ -1399,15 +1399,15 @@ exec(char *path, char **argv)
 80100cba:	83 c0 6c             	add    $0x6c,%eax
 80100cbd:	89 04 24             	mov    %eax,(%esp)
 80100cc0:	e8 8b 37 00 00       	call   80104450 <safestrcpy>
-	sz = PGROUNDUP(sz);	
+	sz = PGROUNDUP(sz);	// Round sz up to next page boundary (stack needs to starts at new page)
 80100cc5:	8b 85 ec fe ff ff    	mov    -0x114(%ebp),%eax
   curproc->pgdir = pgdir;
 80100ccb:	8b 95 f0 fe ff ff    	mov    -0x110(%ebp),%edx
   oldpgdir = curproc->pgdir;
 80100cd1:	8b 77 04             	mov    0x4(%edi),%esi
-  curproc->stackSize = 1;		// stack size = 1 now
+  curproc->stackSize = 1;		// initialize the size of stack to 1
 80100cd4:	c7 47 7c 01 00 00 00 	movl   $0x1,0x7c(%edi)
-	sz = PGROUNDUP(sz);	
+	sz = PGROUNDUP(sz);	// Round sz up to next page boundary (stack needs to starts at new page)
 80100cdb:	05 ff 0f 00 00       	add    $0xfff,%eax
 80100ce0:	25 00 f0 ff ff       	and    $0xfffff000,%eax
 80100ce5:	89 07                	mov    %eax,(%edi)
@@ -8588,8 +8588,10 @@ fetchint(uint addr, int *ip)
 801044c1:	89 e5                	mov    %esp,%ebp
 801044c3:	8b 45 08             	mov    0x8(%ebp),%eax
   //struct proc *curproc = myproc();		//Change from sz to user stack
-
-  if(addr >= USERSTACKBASE|| addr+4 > USERSTACKBASE)
+	// codes below are checking if the addrs are on the stack, the rest
+	// of the syscall in this file are basically the same
+	// but we change sz to user stack instead in lab 3
+  if(addr >= USERSTACKBASE || addr+4 > USERSTACKBASE)
 801044c6:	3d fb ff ff 7f       	cmp    $0x7ffffffb,%eax
 801044cb:	77 0b                	ja     801044d8 <fetchint+0x18>
     return -1;
@@ -8668,13 +8670,14 @@ argint(int n, int *ip)
 80104520:	55                   	push   %ebp
 80104521:	89 e5                	mov    %esp,%ebp
 80104523:	83 ec 08             	sub    $0x8,%esp
+  // no sz involved so don't have to change?
   return fetchint((myproc()->tf->esp) + 4 + 4*n, ip);
 80104526:	e8 65 f1 ff ff       	call   80103690 <myproc>
 8010452b:	8b 55 08             	mov    0x8(%ebp),%edx
 8010452e:	8b 40 18             	mov    0x18(%eax),%eax
 80104531:	8b 40 44             	mov    0x44(%eax),%eax
 80104534:	8d 44 90 04          	lea    0x4(%eax,%edx,4),%eax
-  if(addr >= USERSTACKBASE|| addr+4 > USERSTACKBASE)
+  if(addr >= USERSTACKBASE || addr+4 > USERSTACKBASE)
 80104538:	3d fb ff ff 7f       	cmp    $0x7ffffffb,%eax
 8010453d:	77 11                	ja     80104550 <argint+0x30>
   *ip = *(int*)(addr);
@@ -14588,9 +14591,9 @@ clearpteu(pde_t *pgdir, char *uva)
 80106af9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
 
 80106b00 <copyuvm>:
-
 // Given a parent process's page table, create a copy
 // of it for a child.
+// Modified for lab3, add one more input of size of stack
 pde_t*
 copyuvm(pde_t *pgdir, uint sz, uint stackSize)
 {
@@ -14611,6 +14614,8 @@ copyuvm(pde_t *pgdir, uint sz, uint stackSize)
 80106b10:	89 45 e0             	mov    %eax,-0x20(%ebp)
 80106b13:	0f 84 6b 01 00 00    	je     80106c84 <copyuvm+0x184>
     return 0;
+  // This loop only checks the bottem part of addr space
+  // so we can keep it (despite it involves sz)
   for(i = 0; i < sz; i += PGSIZE){
 80106b19:	8b 55 0c             	mov    0xc(%ebp),%edx
 80106b1c:	85 d2                	test   %edx,%edx

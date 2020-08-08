@@ -79,18 +79,21 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:					// Page Fault case
     ;
-    uint faultAddr = rcr2();	//Get the fault address
-    uint numPG = myproc()->stackSize + 1;
+    uint faultAddr = rcr2();	//Get the fault address using rcr2 (read CR2 reg)
+    uint numPG = myproc()->stackSize + 1; // Get the current page number we have in stack
     
+    // Check if the addr is under the current bottom of the stack
     if(faultAddr >= USERSTACKBASE - ((PGSIZE * numPG) + 1))
     {
+		// Then we will first try to create a new page and map it using allocuvm()
 		if(allocuvm(myproc()->pgdir, PGROUNDDOWN(faultAddr), PGROUNDDOWN(faultAddr) + 8) == 0)
 		{
+			// Mapping or creating error
 			cprintf("\n Error orrcured in allocuvm() ! \n");
 			break;
 		}
-		
-		myproc()->stackSize += 1;
+		// Creating and mapping new page success
+		myproc()->stackSize += 1; // Update the size of stack
 		cprintf("\n Stack size is successfully increased by 1 \n");
 		break;
 	}
