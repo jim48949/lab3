@@ -18,8 +18,10 @@ int
 fetchint(uint addr, int *ip)
 {
   //struct proc *curproc = myproc();		//Change from sz to user stack
-
-  if(addr >= USERSTACKBASE|| addr+4 > USERSTACKBASE)
+	// codes below are checking if the addrs are on the stack, the rest
+	// of the syscall in this file are basically the same
+	// but we change sz to user stack instead in lab 3
+  if(addr >= USERSTACKBASE || addr+4 > USERSTACKBASE)
     return -1;
   *ip = *(int*)(addr);
   return 0;
@@ -49,6 +51,7 @@ fetchstr(uint addr, char **pp)
 int
 argint(int n, int *ip)
 {
+  // no sz involved so don't have to change?
   return fetchint((myproc()->tf->esp) + 4 + 4*n, ip);
 }
 
