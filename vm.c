@@ -312,6 +312,7 @@ clearpteu(pde_t *pgdir, char *uva)
 
 // Given a parent process's page table, create a copy
 // of it for a child.
+// Modified for lab3, add one more input of size of stack
 pde_t*
 copyuvm(pde_t *pgdir, uint sz, uint stackSize)
 {
@@ -322,6 +323,8 @@ copyuvm(pde_t *pgdir, uint sz, uint stackSize)
 
   if((d = setupkvm()) == 0)
     return 0;
+  // This loop only checks the bottem part of addr space
+  // so we can keep it (despite it involves sz)
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
@@ -336,6 +339,10 @@ copyuvm(pde_t *pgdir, uint sz, uint stackSize)
       goto bad;
   }
   
+  // The ALMOST same loop as the one above
+  // but we use it to check the addr in user stack we create
+  // this is where stackSize gets involved since we also need to track
+  // the size of the stack as it grows up
   for(i = USERSTACKBASE - PGSIZE + 1; stackSize > 0; i -= PGSIZE, stackSize--)
   {
 	if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)

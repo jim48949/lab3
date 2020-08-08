@@ -104,7 +104,7 @@ exec(char *path, char **argv)
 
   // Commit to the user image.
   oldpgdir = curproc->pgdir;
-  curproc->stackSize = 1;		// stack size = 1 now
+  curproc->stackSize = 1;		// initialize the size of stack to 1
   curproc->pgdir = pgdir;
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
