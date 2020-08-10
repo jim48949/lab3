@@ -7,7 +7,7 @@
      return n;
    }
 
-   if (n == 40 || n == 60 || n == 80 || n == 100 || n == 120) {
+   if (n == 40 || n == 50 || n == 60 || n == 70 || n == 80) {
        printf(1, "%d\n", n);
    }
 
@@ -17,7 +17,9 @@
  int main(int argc, char const *argv[]) {
 
     printf(1, "\n This test is to detect the page fault and increase the stack size by one page \n \n");
-    
+    printf(1, "\n If we can see a message about increasing the stack size then\n this test successes \n");
+    printf(1, " Hence, there is no need to wait for all recursive functions to end \n \n");
+    // Test starts
     printf(1, "recursive(5) = %d\n", recursive(5));
     printf(1, "recursive(10) = %d\n", recursive(10));
     printf(1, "recursive(15) = %d\n", recursive(15));
