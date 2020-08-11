@@ -189,7 +189,7 @@ fork(void)
     return -1;
   }
 
-  // Copy process state from proc.			// copunvm() has been modified with 3 inputs
+  // Copy process state from proc.			// copyuvm() has been modified with 3 inputs
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz, curproc->stackSize)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
