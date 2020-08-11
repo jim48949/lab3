@@ -179,6 +179,7 @@ UPROGS=\
 	_null\
 	_test1\
 	_test2\
+	_lab3\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
